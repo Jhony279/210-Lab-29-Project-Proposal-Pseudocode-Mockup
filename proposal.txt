@@ -1,0 +1,16 @@
+Project Overview:
+My project is a Transit hub simulation that will try and monitor the flow of commuters
+and vehicles going across cities over 25 time periods (Each time period represents 15 
+minutes). The goal is to simulate how transit stations manage arriving, departing, and
+emergency/maintenance vehicles during peak and off-peak cycles.
+
+Implementations:
+I'll use a std::map that will hold all any data related to the stations. It will use
+the hub's name as a unique key to dynamically store and acces any station. Each key
+holds an array with 3 lists inside that will each represent Incoming Trains, Outgoing
+Trains, and Service/Maintenance Vehicles.
+
+Simulated events:
+The code will simulate the arrival and departure of trains, Random momonets where the
+traffic of trains becomes high, and when a service unit may be blocking a platform 
+which would then cause a delay in departures

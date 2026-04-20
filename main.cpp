@@ -11,6 +11,8 @@ using namespace std;
 void runTransitSimulation(map<string, array<list<string>, 3>>&, int);
 void loadTrafficData(map<string, array<list<string>, 3>>&, const string&);
 
+const string TRAFFIC_FILE = "traffic.txt";
+
 
 int main() {
     // Requirement: std::map with a value of an array of 3 lists
@@ -20,10 +22,16 @@ int main() {
     // Pseudocode: Verify file opened correctly; if not, output error and return 1
     // Pseudocode: While reading lines, parse Hub Name and Vehicle ID
     // Pseudocode: Push Vehicle ID into the appropriate list (Incoming/Outgoing/Service)
-    loadTrafficData(transitMap, "traffic.txt");
+    loadTrafficData(transitMap, TRAFFIC_FILE);
 
     // INITIAL STATE DISPLAY
     // Requirement: Neatly display the map data
+    cout << "--- Initial State ---" << endl;
+    for (auto const& [station, lists] : transitMap) {
+        cout << "Hub: " << station << " | Incoming Count: " << lists[0].size() << endl;
+        cout << "Hub: " << station << " | Outgoing Count: " << lists[1].size() << endl;
+        cout << "Hub: " << station << " | Service Count: " << lists[2].size() << endl;
+    }
 
     // RUN SIMULATION
     // Requirement: Show how environment changes after 25 time periods
@@ -32,7 +40,6 @@ int main() {
     // FINAL STATE DISPLAY
     // Pseudocode: Print the contents of the map again to show changes
     cout << "--- Simulation Complete ---" << endl;
-
     return 0;
 }
 
@@ -54,10 +61,8 @@ void loadTrafficData(map<string, array<list<string>, 3>>& transitMap, const stri
         return;
     }
 
-
     string line;
     int lineCount = 0;
-
 
     // Read the file line by line
     while (getline(file, line)) {
@@ -82,7 +87,6 @@ void loadTrafficData(map<string, array<list<string>, 3>>& transitMap, const stri
             }
         }
     }
-
 
     file.close();
     cout << "Successfully loaded " << lineCount << " vehicles from " << filename << "." << endl;

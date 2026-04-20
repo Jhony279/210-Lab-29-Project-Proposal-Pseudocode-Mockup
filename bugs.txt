@@ -2,7 +2,7 @@
     Fix[Use the method transitMap.find() to check if the station exists]
 
 2.  Bug[If traffic.txt has invalid data the program crashes]
-    Fix[Use a try-catch]
+    Fix[Use a try-catch and check the value of statusIndex]
 
 3.  Bug[]
     Fix[]

@@ -1,0 +1,29 @@
+1.  Bug[There is no check to see if a station exists in runTransitSimulation]
+    Fix[Use the method transitMap.find() to check if the station exists]
+
+2.  Bug[If traffic.txt has invalid data the program crashes]
+    Fix[Use a try-catch and check the value of statusIndex]
+
+3.  Bug[Code loops infinetely when ettempting to let trains move multiple stations per cycle]
+    Fix[Create a pass limit variable to end the loop if the value is reached]
+
+4.  Bug[]
+    Fix[]
+
+5.  Bug[]
+    Fix[]
+
+6.  Bug[]
+    Fix[]
+
+7.  Bug[]
+    Fix[]
+
+8.  Bug[]
+    Fix[]
+
+9.  Bug[]
+    Fix[]
+
+10.  Bug[]
+    Fix[]

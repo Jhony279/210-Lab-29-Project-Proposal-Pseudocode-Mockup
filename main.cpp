@@ -4,53 +4,135 @@
 #include <array>
 #include <string>
 #include <fstream>
+#include <sstream>
+#include <random>
 
 using namespace std;
 
-// 1. FUNCTION DEFINITION
-// Purpose: Iterate through the map and simulate 25 time periods of transit activity
-// Parameters: The transit map (passed by reference) and the number of periods
-void runTransitSimulation(map<string, array<list<string>, 3>>& transitMap, int cycles) {
-    // Pseudocode: Loop for the specified number of cycles (25)
-    // Pseudocode: Inside the loop, iterate through every station in the map
-    // Pseudocode: Use logic to move strings between the 3 lists (Arriving, Departing, Service)
-    
-    // Wireframe check:
-    cout << "Simulation successfully called for " << cycles << " cycles." << endl;
-}
+void runTransitSimulation(map<string, array<list<string>, 3>>&, int);
+void loadTrafficData(map<string, array<list<string>, 3>>&, const string&);
+void displayStationStatus(const map<string, array<list<string>, 3>>&);
+
+const string TRAFFIC_FILE = "traffic.txt";
+const int NUM_CYCLES = 25;
+const int NUM_LISTS = 3;
+const int INCOMING_INDEX = 0, OUTGOING_INDEX = 1, SERVICE_INDEX = 2;
+const int INCOMING_PROBABILITY = 70, OUTGOING_PROBABILITY = 60, SERVICE_PROBABILITY = 50;
+const int MAX_PROBABILITY = 100;
+
 
 int main() {
-    // 2. DATA STRUCTURE INITIALIZATION
-    // Requirement: std::map with a value of an array of 3 lists
+    // CREATE DATA STRUCTURE
     map<string, array<list<string>, 3>> transitMap;
 
-    // 3. FILE HANDLING PSEUDOCODE
-    // Pseudocode: Open "traffic_data.txt" using ifstream
-    // Pseudocode: Verify file opened correctly; if not, output error and return 1
-    // Pseudocode: While reading lines, parse Hub Name and Vehicle ID
-    // Pseudocode: Push Vehicle ID into the appropriate list (Incoming/Outgoing/Service)
-    
-    // 4. WIREFRAME DATA (MOCKUP)
-    // Adding one element manually to prove the nested structure is coded correctly
-    string hub = "Grand Central";
-    transitMap[hub][0].push_back("Train-101"); // Index 0: Incoming
-    transitMap[hub][1].push_back("Train-202"); // Index 1: Outgoing
-    transitMap[hub][2].push_back("Cutter-Unit"); // Index 2: Service
+    // LOAD DATA
+    loadTrafficData(transitMap, TRAFFIC_FILE);
 
-    // 5. INITIAL STATE DISPLAY
-    // Requirement: Neatly display the map data
-    cout << "--- Initial State ---" << endl;
-    for (auto const& [name, status] : transitMap) {
-        cout << "Hub: " << name << " | Incoming Count: " << status[0].size() << endl;
+    // RUN SIMULATION
+    runTransitSimulation(transitMap, NUM_CYCLES);
+
+    // FINAL STATE DISPLAY
+    cout << "--- Simulation Complete ---" << endl;
+    displayStationStatus(transitMap);
+    return 0;
+}
+
+// @brief simulate the movement of vehicles through the transit system
+void runTransitSimulation(map<string, 
+    array<list<string>, 
+    3>>& transitMap, 
+    int cycles) {
+
+    // Set up random number generation
+    mt19937 rng(random_device{}());
+    uniform_int_distribution<int> moveChance(0, MAX_PROBABILITY);  // 0-100 for probability
+    
+    for (int cycle = 0; cycle < cycles; cycle++) {
+        cout << "\n--- Cycle " << (cycle + 1) << " ---" << endl;
+        
+        for (auto& [station, lists] : transitMap) {
+            // 70% chance to move a vehicle from Incoming (0) to Outgoing (1)
+            if (!lists[INCOMING_INDEX].empty() && moveChance(rng) < INCOMING_PROBABILITY) {
+                string vehicle = lists[INCOMING_INDEX].front();
+                lists[INCOMING_INDEX].pop_front();
+                lists[OUTGOING_INDEX].push_back(vehicle);
+                cout << station << ": " << vehicle 
+                    << " moved from Incoming to Outgoing" << endl;
+            }
+            
+            // 60% chance to move a vehicle from Outgoing (1) to Service (2)
+            if (!lists[OUTGOING_INDEX].empty() && moveChance(rng) < OUTGOING_PROBABILITY) {
+                string vehicle = lists[OUTGOING_INDEX].front();
+                lists[OUTGOING_INDEX].pop_front();
+                lists[SERVICE_INDEX].push_back(vehicle);
+                cout << station << ": " << vehicle 
+                    << " moved from Outgoing to Service" << endl;
+            }
+            
+            // 50% chance to move a vehicle from Service (2) back to Incoming (0)
+            if (!lists[SERVICE_INDEX].empty() && moveChance(rng) < SERVICE_PROBABILITY) {
+                string vehicle = lists[SERVICE_INDEX].front();
+                lists[SERVICE_INDEX].pop_front();
+                lists[INCOMING_INDEX].push_back(vehicle);
+                cout << station << ": " << vehicle 
+                    << " moved from Service back to Incoming" << endl;
+            }
+        }
+    }
+}
+
+// @brief load traffic data from a file into the transit map
+void loadTrafficData(
+    map<string, array<list<string>, 
+    3>>& transitMap, 
+    const string& filename) {
+
+    ifstream file(filename);
+
+    // Alpha requirement: Check if file opens correctly
+    if (!file.is_open()) {
+        cout << "Error: Could not open file " << filename 
+            << ". Check your file path." << endl;
+        return;
     }
 
-    // 6. RUN SIMULATION
-    // Requirement: Show how environment changes after 25 time periods
-    runTransitSimulation(transitMap, 25);
+    string line;
+    int lineCount = 0;
 
-    // 7. FINAL STATE DISPLAY
-    // Pseudocode: Print the contents of the map again to show changes
-    cout << "--- Simulation Complete ---" << endl;
+    // Read the file line by line
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string stationName, vehicleID, statusString;
 
-    return 0;
+        // Parse the line using the comma ',' as a delimiter
+        if (getline(ss, stationName, ',') &&
+            getline(ss, vehicleID, ',') &&
+            getline(ss, statusString, ',')) {
+        
+            // Convert the status string ("0", "1", or "2") into an integer
+            int statusIndex = stoi(statusString);
+
+
+            // Safety check: ensure the index corresponds to one of our 3 lists
+            if (statusIndex >= 0 && statusIndex < NUM_LISTS) {
+                // Push the vehicle into the correct list at the correct station
+                transitMap[stationName][statusIndex].push_back(vehicleID);
+                lineCount++;
+            }
+        }
+    }
+
+    file.close();
+    cout << "Successfully loaded " << lineCount << " vehicles from " 
+        << filename << "." << endl;
+}
+
+// @brief display the current status of each station in the transit map
+void displayStationStatus(const map<string, array<list<string>, 3>>& transitMap) {
+    cout << "\nStation Status:" << endl;
+    for (auto const& [station, lists] : transitMap) {
+        cout << "Hub: " << station << " | Incoming Count: " << lists[INCOMING_INDEX].size() << endl;
+        cout << "Hub: " << station << " | Outgoing Count: " << lists[OUTGOING_INDEX].size() << endl;
+        cout << "Hub: " << station << " | Service Count: " << lists[SERVICE_INDEX].size() << endl;
+    }
 }

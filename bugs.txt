@@ -1,8 +1,8 @@
-1.  Bug[]
-    Fix[]
+1.  Bug[There is no check to see if a station exists in runTransitSimulation]
+    Fix[Use the method transitMap.find() to check if the station exists]
 
-2.  Bug[]
-    Fix[]
+2.  Bug[If traffic.txt has invalid data the program crashes]
+    Fix[Use a try-catch]
 
 3.  Bug[]
     Fix[]

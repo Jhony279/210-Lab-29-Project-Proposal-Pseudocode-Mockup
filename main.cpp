@@ -51,29 +51,37 @@ void runTransitSimulation(map<string,
         cout << "\n--- Cycle " << (cycle + 1) << " ---" << endl;
         
         for (auto& [station, lists] : transitMap) {
+            auto it = transitMap.find(station);
+            if (it == transitMap.end()) {
+                cout << "Warning: station not found while iterating: " << station << endl;
+                continue;
+            }
+
+            auto& stationLists = it->second;
+
             // 70% chance to move a vehicle from Incoming (0) to Outgoing (1)
-            if (!lists[INCOMING_INDEX].empty() && moveChance(rng) < INCOMING_PROBABILITY) {
-                string vehicle = lists[INCOMING_INDEX].front();
-                lists[INCOMING_INDEX].pop_front();
-                lists[OUTGOING_INDEX].push_back(vehicle);
+            if (!stationLists[INCOMING_INDEX].empty() && moveChance(rng) < INCOMING_PROBABILITY) {
+                string vehicle = stationLists[INCOMING_INDEX].front();
+                stationLists[INCOMING_INDEX].pop_front();
+                stationLists[OUTGOING_INDEX].push_back(vehicle);
                 cout << station << ": " << vehicle 
                     << " moved from Incoming to Outgoing" << endl;
             }
             
             // 60% chance to move a vehicle from Outgoing (1) to Service (2)
-            if (!lists[OUTGOING_INDEX].empty() && moveChance(rng) < OUTGOING_PROBABILITY) {
-                string vehicle = lists[OUTGOING_INDEX].front();
-                lists[OUTGOING_INDEX].pop_front();
-                lists[SERVICE_INDEX].push_back(vehicle);
+            if (!stationLists[OUTGOING_INDEX].empty() && moveChance(rng) < OUTGOING_PROBABILITY) {
+                string vehicle = stationLists[OUTGOING_INDEX].front();
+                stationLists[OUTGOING_INDEX].pop_front();
+                stationLists[SERVICE_INDEX].push_back(vehicle);
                 cout << station << ": " << vehicle 
                     << " moved from Outgoing to Service" << endl;
             }
             
             // 50% chance to move a vehicle from Service (2) back to Incoming (0)
-            if (!lists[SERVICE_INDEX].empty() && moveChance(rng) < SERVICE_PROBABILITY) {
-                string vehicle = lists[SERVICE_INDEX].front();
-                lists[SERVICE_INDEX].pop_front();
-                lists[INCOMING_INDEX].push_back(vehicle);
+            if (!stationLists[SERVICE_INDEX].empty() && moveChance(rng) < SERVICE_PROBABILITY) {
+                string vehicle = stationLists[SERVICE_INDEX].front();
+                stationLists[SERVICE_INDEX].pop_front();
+                stationLists[INCOMING_INDEX].push_back(vehicle);
                 cout << station << ": " << vehicle 
                     << " moved from Service back to Incoming" << endl;
             }
@@ -110,14 +118,25 @@ void loadTrafficData(
             getline(ss, statusString, ',')) {
         
             // Convert the status string ("0", "1", or "2") into an integer
-            int statusIndex = stoi(statusString);
+            try {
+                int statusIndex = stoi(statusString);
 
-
-            // Safety check: ensure the index corresponds to one of our 3 lists
-            if (statusIndex >= 0 && statusIndex < NUM_LISTS) {
-                // Push the vehicle into the correct list at the correct station
-                transitMap[stationName][statusIndex].push_back(vehicleID);
-                lineCount++;
+                // Safety check: ensure the index corresponds to one of our 3 lists
+                if (statusIndex >= 0 && statusIndex < NUM_LISTS &&
+                    !stationName.empty() && !vehicleID.empty()) {
+                    // Push the vehicle into the correct list at the correct station
+                    transitMap[stationName][statusIndex].push_back(vehicleID);
+                    lineCount++;
+                } else {
+                    cout << "Warning: invalid traffic record on line "
+                        << lineCount + 1 << ": " << line << endl;
+                }
+            } catch (const invalid_argument&) {
+                cout << "Warning: non-numeric status on line "
+                    << lineCount + 1 << ": " << line << endl;
+            } catch (const out_of_range&) {
+                cout << "Warning: status value out of range on line "
+                    << lineCount + 1 << ": " << line << endl;
             }
         }
     }

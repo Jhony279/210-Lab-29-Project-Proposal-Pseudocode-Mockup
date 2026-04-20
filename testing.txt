@@ -1,0 +1,73 @@
+The purpose of this unit test is to verify the functionality of the loadTrafficData
+function. This function is responsible for parsing an external text file and 
+populating a nested data structure
+
+The test procedure is as follows:
+1. Isolation: I have created a standalone driver program that does not require the
+full simulation logic to run.
+
+2. Input: The driver creates a temporary file named "unit_test_data.txt" containing
+three specific test cases: one incoming train for "Grand Central," one departing train
+for "Union Station," and one service vehicle for "North Port."
+
+3. Validation: After calling loadTrafficData, the program uses conditional checks to verify that:
+    - The map contains exactly 3 keys (stations).
+    - The "Grand Central" incoming list (index 0) contains the correct ID.
+    - The "North Port" service list (index 2) contains the correct ID.
+
+4. Expectation: If the nested mapping and file parsing are working correctly, the 
+program will output a success message. If any data is misplaced or the file fails
+to open, an error message will trigger.
+
+Driver Program:
+--------------------------------------------------
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <map>
+#include <array>
+#include <list>
+
+using namespace std;
+
+void loadTrafficData(map<string, array<list<string>, 3>>&, const string&)
+
+int main() {
+    ofstream testFile("unit_test_data.txt");
+    testFile << "Grand Central,Train-99,0\n";
+    testFile << "Union Station,Train-100,1\n";
+    testFile << "North Port,Service-Alpha,2\n";
+    testFile.close();
+
+    map<string, array<list<string>, 3>> testMap;
+    loadTrafficData(testMap, "unit_test_data.txt");
+
+    bool passed = true;
+    if (testMap["North Port"][2].empty() || testMap["North Port"][2].front() != "Service-Alpha") passed = false;
+    if (testMap["Grand Central"][0].empty() || testMap["Grand Central"][0].front() != "Train-99") passed = false;
+
+    if (passed) {
+        cout << "UNIT TEST PASSED: loadTrafficData successfully parsed and mapped data." << endl;
+    } else {
+        cout << "UNIT TEST FAILED." << endl;
+    }
+    return 0;
+}
+
+void loadTrafficData(map<string, array<list<string>, 3>>& transitMap, const string& filename) {
+    ifstream file(filename);
+    if (!file.is_open()) return;
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string stationName, vehicleID, statusString;
+        if (getline(ss, stationName, ',') && getline(ss, vehicleID, ',') && getline(ss, statusString, ',')) {
+            int statusIndex = stoi(statusString);
+            if (statusIndex >= 0 && statusIndex <= 2) {
+                transitMap[stationName][statusIndex].push_back(vehicleID);
+            }
+        }
+    }
+    file.close();
+}

@@ -44,3 +44,46 @@ void runTransitSimulation(map<string, array<list<string>, 3>>& transitMap, int c
     // Pseudocode: Inside the loop, iterate through every station in the map
     // Pseudocode: Use logic to move strings between the 3 lists (Arriving, Departing, Service)
 }
+
+void loadTrafficData(map<string, array<list<string>, 3>>& transitMap, const string& filename) {
+    ifstream file(filename);
+
+    // Alpha requirement: Check if file opens correctly
+    if (!file.is_open()) {
+        cout << "Error: Could not open file " << filename << ". Check your file path." << endl;
+        return;
+    }
+
+
+    string line;
+    int lineCount = 0;
+
+
+    // Read the file line by line
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string stationName, vehicleID, statusString;
+
+
+        // Parse the line using the comma ',' as a delimiter
+        if (getline(ss, stationName, ',') &&
+            getline(ss, vehicleID, ',') &&
+            getline(ss, statusString, ',')) {
+        
+            // Convert the status string ("0", "1", or "2") into an integer
+            int statusIndex = stoi(statusString);
+
+
+            // Safety check: ensure the index corresponds to one of our 3 lists
+            if (statusIndex >= 0 && statusIndex <= 2) {
+                // Push the vehicle into the correct list at the correct station
+                transitMap[stationName][statusIndex].push_back(vehicleID);
+                lineCount++;
+            }
+        }
+    }
+
+
+    file.close();
+    cout << "Successfully loaded " << lineCount << " vehicles from " << filename << "." << endl;
+}

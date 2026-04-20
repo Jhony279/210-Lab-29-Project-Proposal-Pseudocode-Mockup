@@ -12,6 +12,7 @@ using namespace std;
 void runTransitSimulation(map<string, array<list<string>, 3>>&, int);
 void loadTrafficData(map<string, array<list<string>, 3>>&, const string&);
 void displayStationStatus(const map<string, array<list<string>, 3>>&);
+int displayMenu();
 
 const string TRAFFIC_FILE = "traffic.txt";
 const int NUM_CYCLES = 25;
@@ -19,6 +20,7 @@ const int NUM_LISTS = 3;
 const int INCOMING_INDEX = 0, OUTGOING_INDEX = 1, SERVICE_INDEX = 2;
 const int INCOMING_PROBABILITY = 70, OUTGOING_PROBABILITY = 60, SERVICE_PROBABILITY = 50;
 const int MAX_PROBABILITY = 100;
+const int MAX_OPTIONS = 1;
 
 
 int main() {
@@ -31,9 +33,25 @@ int main() {
     // RUN SIMULATION
     runTransitSimulation(transitMap, NUM_CYCLES);
 
-    // FINAL STATE DISPLAY
-    cout << "--- Simulation Complete ---" << endl;
-    displayStationStatus(transitMap);
+    // MENU LOOP
+    bool again = true;
+    while (again) {
+        int choice = 0;
+        choice = displayMenu();
+        
+        switch(choice) {
+            case 1:
+                displayStationStatus(transitMap);
+                break;
+            case MAX_OPTIONS + 1:
+                cout << "Exiting program. Goodbye!" << endl;
+                again = false;
+                break;
+            default:
+                cout << "Invalid choice. Please try again." << endl;
+        }
+    }
+    
     return 0;
 }
 
@@ -51,9 +69,14 @@ void runTransitSimulation(map<string,
         cout << "\n--- Cycle " << (cycle + 1) << " ---" << endl;
         
         // Keep moving vehicles until no more movements occur in a full pass
+        // Limit to 10 passes per cycle to prevent infinite loops
         bool movesThisCycle = true;
-        while (movesThisCycle) {
+        int passCount = 0;
+        const int MAX_PASSES_PER_CYCLE = 3;
+
+        while (movesThisCycle && passCount < MAX_PASSES_PER_CYCLE) {
             movesThisCycle = false;
+            passCount++;
 
             for (auto& [station, lists] : transitMap) {
                 auto it = transitMap.find(station);
@@ -163,4 +186,20 @@ void displayStationStatus(const map<string, array<list<string>, 3>>& transitMap)
         cout << "Hub: " << station << " | Outgoing Count: " << lists[OUTGOING_INDEX].size() << endl;
         cout << "Hub: " << station << " | Service Count: " << lists[SERVICE_INDEX].size() << endl;
     }
+}
+
+// @brief display menu and get user choice
+int displayMenu() {
+    cout << "\n--- Main Menu ---" << endl;
+    cout << "[1] Display Cycles" << endl;
+    cout << "[2] Quit" << endl;
+    cout << "Enter your choice: ";
+    
+    int choice;
+    cin >> choice;
+    while (choice < 1 || choice > MAX_OPTIONS + 1) {
+        cout << "Invalid, again --> ";
+        cin >> choice;
+    }
+    return choice;
 }

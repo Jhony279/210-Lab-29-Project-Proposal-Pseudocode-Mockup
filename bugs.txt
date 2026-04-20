@@ -4,7 +4,7 @@
 2.  Bug[If traffic.txt has invalid data the program crashes]
     Fix[Use a try-catch and check the value of statusIndex]
 
-3.  Bug[]
+3.  Bug[Code loops infinetely when ettempting to let trains move multiple stations per cycle]
     Fix[]
 
 4.  Bug[]

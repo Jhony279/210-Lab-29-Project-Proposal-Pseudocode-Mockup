@@ -50,40 +50,49 @@ void runTransitSimulation(map<string,
     for (int cycle = 0; cycle < cycles; cycle++) {
         cout << "\n--- Cycle " << (cycle + 1) << " ---" << endl;
         
-        for (auto& [station, lists] : transitMap) {
-            auto it = transitMap.find(station);
-            if (it == transitMap.end()) {
-                cout << "Warning: station not found while iterating: " << station << endl;
-                continue;
-            }
+        // Keep moving vehicles until no more movements occur in a full pass
+        bool movesThisCycle = true;
+        while (movesThisCycle) {
+            movesThisCycle = false;
 
-            auto& stationLists = it->second;
+            for (auto& [station, lists] : transitMap) {
+                auto it = transitMap.find(station);
+                if (it == transitMap.end()) {
+                    cout << "Warning: station not found while iterating: " << station << endl;
+                    continue;
+                }
 
-            // 70% chance to move a vehicle from Incoming (0) to Outgoing (1)
-            if (!stationLists[INCOMING_INDEX].empty() && moveChance(rng) < INCOMING_PROBABILITY) {
-                string vehicle = stationLists[INCOMING_INDEX].front();
-                stationLists[INCOMING_INDEX].pop_front();
-                stationLists[OUTGOING_INDEX].push_back(vehicle);
-                cout << station << ": " << vehicle 
-                    << " moved from Incoming to Outgoing" << endl;
-            }
-            
-            // 60% chance to move a vehicle from Outgoing (1) to Service (2)
-            if (!stationLists[OUTGOING_INDEX].empty() && moveChance(rng) < OUTGOING_PROBABILITY) {
-                string vehicle = stationLists[OUTGOING_INDEX].front();
-                stationLists[OUTGOING_INDEX].pop_front();
-                stationLists[SERVICE_INDEX].push_back(vehicle);
-                cout << station << ": " << vehicle 
-                    << " moved from Outgoing to Service" << endl;
-            }
-            
-            // 50% chance to move a vehicle from Service (2) back to Incoming (0)
-            if (!stationLists[SERVICE_INDEX].empty() && moveChance(rng) < SERVICE_PROBABILITY) {
-                string vehicle = stationLists[SERVICE_INDEX].front();
-                stationLists[SERVICE_INDEX].pop_front();
-                stationLists[INCOMING_INDEX].push_back(vehicle);
-                cout << station << ": " << vehicle 
-                    << " moved from Service back to Incoming" << endl;
+                auto& stationLists = it->second;
+
+                // 70% chance to move a vehicle from Incoming (0) to Outgoing (1)
+                if (!stationLists[INCOMING_INDEX].empty() && moveChance(rng) < INCOMING_PROBABILITY) {
+                    string vehicle = stationLists[INCOMING_INDEX].front();
+                    stationLists[INCOMING_INDEX].pop_front();
+                    stationLists[OUTGOING_INDEX].push_back(vehicle);
+                    cout << station << ": " << vehicle 
+                        << " moved from Incoming to Outgoing" << endl;
+                    movesThisCycle = true;
+                }
+                
+                // 60% chance to move a vehicle from Outgoing (1) to Service (2)
+                if (!stationLists[OUTGOING_INDEX].empty() && moveChance(rng) < OUTGOING_PROBABILITY) {
+                    string vehicle = stationLists[OUTGOING_INDEX].front();
+                    stationLists[OUTGOING_INDEX].pop_front();
+                    stationLists[SERVICE_INDEX].push_back(vehicle);
+                    cout << station << ": " << vehicle 
+                        << " moved from Outgoing to Service" << endl;
+                    movesThisCycle = true;
+                }
+                
+                // 50% chance to move a vehicle from Service (2) back to Incoming (0)
+                if (!stationLists[SERVICE_INDEX].empty() && moveChance(rng) < SERVICE_PROBABILITY) {
+                    string vehicle = stationLists[SERVICE_INDEX].front();
+                    stationLists[SERVICE_INDEX].pop_front();
+                    stationLists[INCOMING_INDEX].push_back(vehicle);
+                    cout << station << ": " << vehicle 
+                        << " moved from Service back to Incoming" << endl;
+                    movesThisCycle = true;
+                }
             }
         }
     }
